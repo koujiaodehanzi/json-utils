@@ -61,13 +61,33 @@ public class JsonScanner {
     }
 
     public void parse(){
-        char c = this.ch;
-        switch (c){
-            case LBRACE :
+        for (;;){
+            if (ch == EOI){
+                return;
+            }else if (ch == LBRACE || ch == LBRACKET){
+                currentLevel++;
+            }else if (ch == RBRACE || ch == RBRACKET){
+                currentLevel--;
+            }
+            if (currentLevel == targetLevel){
+                // 当level相同时，查询该level是否有对应field
+                for (;;){
+                    String nextKey = getNextKey();
+                    if ((nextKey == null || nextKey.equals("")) && (ch == RBRACE || ch == RBRACKET)){
+                        next();
+                        currentLevel--;
+                        break;
+                    }
+                }
+            }
         }
     }
 
     public String getNextKey(){
+        if (ch == RBRACE || ch == RBRACKET){
+            return "";
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
         int keyStatus = 0;
         for (;;){
@@ -75,7 +95,7 @@ public class JsonScanner {
                 keyStatus ++;
             }
             if (keyStatus == 2){
-
+                next();
                 break;
             }else if (keyStatus == 1){
                 stringBuilder.append(ch);
@@ -83,6 +103,16 @@ public class JsonScanner {
             next();
         }
         return stringBuilder.toString().trim();
+    }
+
+    public String getNextValue(){
+        skipWhitespace();
+        if (ch != COLON){
+            throw new RuntimeException("key和value之间必须有符号\":\"");
+        }
+        skipWhitespace();
+
+        return "";
     }
 
 }

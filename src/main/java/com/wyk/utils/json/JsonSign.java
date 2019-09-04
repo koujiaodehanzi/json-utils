@@ -17,6 +17,6 @@ public class JsonSign {
     public static final char RBRACKET = ']';
     public static final char COMMA = ',';
     public static final char COLON = ':';
-    public static final char QUOT = '\"';
+    public static final char QUOT = '"';
 
 }

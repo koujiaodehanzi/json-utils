@@ -17,9 +17,13 @@ public class JsonScanner {
 
     private int targetLevel;
 
+    private String[] keys;
+
     private int currentLevel = 0;
 
-    private String targetStr;
+    private String targetKey;
+
+    private String targetValue;
 
     private char ch;
 
@@ -27,11 +31,12 @@ public class JsonScanner {
 
     private int len;
 
-    public JsonScanner(String jsonStr, int targetLevel) {
+    public JsonScanner(String jsonStr, String[] keys) {
         this.jsonStr = jsonStr;
-        this.targetLevel = targetLevel;
+        this.keys = keys;
 
-        len = jsonStr.length();
+        this.targetLevel = keys.length;
+        this.len = jsonStr.length();
         this.ch = jsonStr.charAt(0);
     }
 
@@ -42,7 +47,7 @@ public class JsonScanner {
 
 
     public String getTargetStr(){
-        return this.targetStr;
+        return this.targetValue;
     }
 
     public final void skipWhitespace() {
@@ -64,6 +69,8 @@ public class JsonScanner {
         for (;;){
             if (ch == EOI){
                 return;
+            }else if (ch == QUOT){
+                this.skipString();
             }else if (ch == LBRACE || ch == LBRACKET){
                 currentLevel++;
             }else if (ch == RBRACE || ch == RBRACKET){
@@ -77,6 +84,9 @@ public class JsonScanner {
                         next();
                         currentLevel--;
                         break;
+                    }else if (nextKey.equals(targetKey)){
+                        this.targetValue = this.skipValue();
+                        return;
                     }
                 }
             }
@@ -105,14 +115,75 @@ public class JsonScanner {
         return stringBuilder.toString().trim();
     }
 
-    public String getNextValue(){
+    private String skipString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (;;){
+            next();
+            stringBuilder.append(ch);
+            if (ch == QUOT){
+                next();
+                break;
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    private String skipObject(){
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean inString = false;
+        for (;;){
+            stringBuilder.append(ch);
+            next();
+            if (ch == QUOT){
+                inString = !inString;
+            }
+            if (ch == RBRACE && !inString){
+                break;
+            }
+
+        }
+        return stringBuilder.toString();
+    }
+
+    private String skipList(){
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean inString = false;
+        for (;;){
+            stringBuilder.append(ch);
+            next();
+            if (ch == QUOT){
+                inString = !inString;
+            }
+            if (ch == RBRACE && !inString){
+                break;
+            }
+
+        }
+        return stringBuilder.toString();
+    }
+
+    public String skipValue(){
+        String value = "";
+
         skipWhitespace();
         if (ch != COLON){
             throw new RuntimeException("key和value之间必须有符号\":\"");
         }
         skipWhitespace();
 
-        return "";
+        switch (ch){
+            case QUOT:
+                break;
+            case LBRACE:
+
+                break;
+            case LBRACKET:
+
+                break;
+
+        }
+
+        return value;
     }
 
 }
